@@ -32,10 +32,9 @@
 
     <string name="Info">
         <b> How to use the app?</b>
-        This app for blind people that they dont be able to recognize objects and colors around
-        them, dont know the obstacle in front of them so this app help them using voice recognition.
-        User need to click on voice button to choose one of (recognize, distance or color)
-        and the app will answer him.
+         When open the app click on the center of the screen, then click on voice button to choose
+        one of the 3 options (recognize, distance or color) or click on the letter which user need
+        (R, C, D),and the app will open the camera and answer him.
 
     </string>
 </resources>
