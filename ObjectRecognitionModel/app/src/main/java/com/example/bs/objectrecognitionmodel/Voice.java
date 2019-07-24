@@ -1,5 +1,6 @@
 package com.example.bs.objectrecognitionmodel;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -50,12 +51,13 @@ public class Voice extends AppCompatActivity {
     public void onConfigurationChanged(Configuration configuration){
         super.onConfigurationChanged(configuration);
         setContentView(R.layout.voice_main);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fabv);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
                 SRec.startListening(intent);
@@ -63,6 +65,7 @@ public class Voice extends AppCompatActivity {
             }
         });
         initializeSpeechRecognizer();
+        change();
     }
 
     ////////
@@ -71,87 +74,71 @@ public class Voice extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.voice_main);
-
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-       fab.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fabv);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
                 intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
                 SRec.startListening(intent);
 
+                String permissions[] = new String[]
+                        {
+                                Manifest.permission.RECORD_AUDIO
+                        };
+
+
+                PermissionUtils.validate(Voice.this, 0, permissions);
             }
         });
         initializeTextToSpeech();
         initializeSpeechRecognizer();
 
+
+        change();
+    }
+
+    private void change(){
         // Button of info
         TextView txt = (TextView) findViewById(R.id.infopop);
         txt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(Voice.this, info.class));
+                Speak("How to use the app? \n When open the app click on voice button to \n say " +
+                        "one of the 3 options(recognize,\n distance \n or  color) \n or click on the letter" +
+                        "which you need (R,\n C,\n D), \n and the app will open the camera and answer you.");
             }
         });
         /////////
 
+        // R GIF
         ImageView Gifr = (GifImageView) findViewById(R.id.gifr);
         Gifr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //ImageView gif2 = (GifImageView) findViewById(R.id.gif);
-                //gif2.setImageResource(R.drawable.r1);
-                Speak(" Now i can recognize objects .");
-                recognize=1;
-                if(voiceBool == 0) {
-                    //Create a new intent to open the camera
-                    Intent Main_intent = new Intent(Voice.this, MainActivity.class);
-                    //start the new activity
-                    startActivity(Main_intent);
-                }
-                else
-                    voiceBool = 0;
+                recognise();
             }
         });
 
+        // D GIF
         ImageView Gifd = (GifImageView) findViewById(R.id.gifd);
         Gifd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //View gif = (View) findViewById(R.id.linergif);
-                //gif.setImageResource(R.drawable.d1);
-                Speak(" Now i can warning you from obstacle .");
-                obstacle=1;
-                if(voiceBool == 0) {
-                    //Create a new intent to open the camera
-                    Intent Main_intent = new Intent(Voice.this, MainActivity.class);
-                    //start the new activity
-                    startActivity(Main_intent);
-                }
-                else
-                    voiceBool = 0;
+                distance();
             }
         });
 
+        // C GIF
         ImageView Gifc = (GifImageView) findViewById(R.id.gifc);
         Gifc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //ImageView gif2 = (GifImageView) findViewById(R.id.gif);
-                //gif2.setImageResource(R.drawable.c1);
-                Speak(" Now i can recognize object's color .");
-                color=1;
-                if(voiceBool == 0) {
-                    //Create a new intent to open the camera
-                    Intent Main_intent = new Intent(Voice.this, MainActivity.class);
-                    //start the new activity
-                    startActivity(Main_intent);
-                }
-                else
-                    voiceBool = 0;
+                color();
             }
         });
 
@@ -177,7 +164,8 @@ public class Voice extends AppCompatActivity {
         switch (resultCode) {
             case 10:
                 if ( resultCode==RESULT_OK && data!= null ){
-                    ArrayList<String> result =data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    ArrayList<String> result =data.getStringArrayListExtra(
+                            RecognizerIntent.EXTRA_RESULTS);
                     txvResult.setText(result.get(0));
                 }
                 break;
@@ -222,7 +210,8 @@ public class Voice extends AppCompatActivity {
 
                 @Override
                 public void onResults(Bundle bundle) {
-                    List<String > Results = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    List<String > Results = bundle.getStringArrayList(
+                            SpeechRecognizer.RESULTS_RECOGNITION);
                     ProcessResult(Results.get(0));
                 }
 
@@ -243,50 +232,17 @@ public class Voice extends AppCompatActivity {
         command =command.toLowerCase();
         //distance
         if (command.contains("distance")) {
-            //ImageView gif = (GifImageView) findViewById(R.id.gif);
-            //gif.setImageResource(R.drawable.d1);
-            Speak(" Now i can warning you from obstacle .");
-            obstacle=1;
-            if(voiceBool == 0) {
-                //Create a new intent to open the camera
-                Intent Main_intent = new Intent(Voice.this, MainActivity.class);
-                //start the new activity
-                startActivity(Main_intent);
-            }
-            else
-                voiceBool = 0;
+            distance();
         }
 
         // recognize
         else if (command.contains("recognize")|| command.contains("recognise")) {
-            //ImageView gif2 = (GifImageView) findViewById(R.id.gif);
-            //gif2.setImageResource(R.drawable.r1);
-            Speak(" Now i can recognize objects .");
-            recognize=1;
-            if(voiceBool == 0) {
-                //Create a new intent to open the camera
-                Intent Main_intent = new Intent(Voice.this, MainActivity.class);
-                //start the new activity
-                startActivity(Main_intent);
-            }
-            else
-                voiceBool = 0;
+            recognise();
         }
 
         //color
         else if (command.contains("color")||command.contains("colour") ) {
-            //ImageView gif2 = (GifImageView) findViewById(R.id.gif);
-            //gif2.setImageResource(R.drawable.c1);
-            Speak(" Now i can recognize object's color .");
-            color=1;
-            if(voiceBool == 0) {
-                //Create a new intent to open the camera
-                Intent Main_intent = new Intent(Voice.this, MainActivity.class);
-                //start the new activity
-                startActivity(Main_intent);
-            }
-            else
-                voiceBool = 0;
+            color();
         }
 
         else
@@ -299,7 +255,8 @@ public class Voice extends AppCompatActivity {
             @Override
             public void onInit(int status) {
                 if (TTS.getEngines().size() ==0) {
-                    Toast.makeText(Voice.this , "you haven't TTS engine" ,Toast.LENGTH_LONG ).show();
+                    Toast.makeText(Voice.this , "you haven't TTS engine" ,
+                            Toast.LENGTH_LONG ).show();
                     finish();
                 }
                 else {
@@ -342,6 +299,51 @@ public class Voice extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        TTS.shutdown();
+        //TTS.shutdown();
+    }
+
+    private void recognise (){
+        //ImageView gif2 = (GifImageView) findViewById(R.id.gif);
+        //gif2.setImageResource(R.drawable.r1);
+        Speak("now i can recognize objects.");
+        recognize=1;
+        if(voiceBool == 0) {
+            //Create a new intent to open the camera
+            Intent Main_intent = new Intent(Voice.this, MainActivity.class);
+            //start the new activity
+            startActivity(Main_intent);
+        }
+        else
+            voiceBool = 0;
+    }
+
+    private void distance(){
+        //View gif = (View) findViewById(R.id.linergif);
+        //gif.setImageResource(R.drawable.d1);
+        Speak(" now i can warning you from obstacle .");
+        obstacle=1;
+        if(voiceBool == 0) {
+            //Create a new intent to open the camera
+            Intent Main_intent = new Intent(Voice.this, MainActivity.class);
+            //start the new activity
+            startActivity(Main_intent);
+        }
+        else
+            voiceBool = 0;
+    }
+
+    private void color(){
+        //ImageView gif2 = (GifImageView) findViewById(R.id.gif);
+        //gif2.setImageResource(R.drawable.c1);
+        Speak(" now i can recognize object's color .");
+        color=1;
+        if(voiceBool == 0) {
+            //Create a new intent to open the camera
+            Intent Main_intent = new Intent(Voice.this, MainActivity.class);
+            //start the new activity
+            startActivity(Main_intent);
+        }
+        else
+            voiceBool = 0;
     }
 }
